@@ -9,7 +9,6 @@ from datetime import datetime, date
 import csv
 import io
 from fastapi.responses import StreamingResponse
-
 import database
 from config import Config
 import analyzer
