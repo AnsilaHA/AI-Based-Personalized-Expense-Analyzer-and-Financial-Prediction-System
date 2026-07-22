@@ -3,6 +3,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import database
 
+
 def get_financial_summary(user_id, monthly_budget=0.0):
     """
     Computes key financial metrics and analytics using Pandas.

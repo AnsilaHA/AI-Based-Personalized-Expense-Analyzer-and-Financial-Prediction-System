@@ -10,7 +10,8 @@ class Config:
         "Salary", "Business Income", "Rent Income", "Freelance", 
         "Pension", "Investments", "Pocket Money", "Other Income"
     ]
-    
+
+       
     MASTER_EXPENSE_CATEGORIES = [
         "Groceries", "Food & Dining", "Travel & Fuel", "Shopping", 
         "Medical & Hospital", "Child Education", "Electricity Bills", 
