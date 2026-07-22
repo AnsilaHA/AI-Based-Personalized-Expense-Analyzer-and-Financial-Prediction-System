@@ -2,6 +2,7 @@ import sqlite3
 import os
 from config import Config
 
+
 def get_db_connection():
     """Establishes a connection to the SQLite database with row factory enabled."""
     conn = sqlite3.connect(Config.DATABASE_PATH)
