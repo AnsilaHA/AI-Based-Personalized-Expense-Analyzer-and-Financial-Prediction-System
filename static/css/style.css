@@ -1,0 +1,451 @@
+/* Premium Dashboard Design Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+/* Color Variables definitions */
+:root {
+    --bg-primary: #f5f6fa;
+    --bg-secondary: #ffffff;
+    --text-primary: #2d3748;
+    --text-secondary: #718096;
+    --border-color: #edf2f7;
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    --accent-color: #f43f5e;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --sidebar-bg: #111827;
+    --sidebar-text: #9ca3af;
+    --sidebar-active-text: #ffffff;
+    --sidebar-active-bg: rgba(99, 102, 241, 0.15);
+    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --card-radius: 16px;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Dark Theme overrides */
+.dark-theme {
+    --bg-primary: #0b0f19;
+    --bg-secondary: #151c2c;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --border-color: #1f2937;
+    --primary-color: #818cf8;
+    --primary-hover: #6366f1;
+    --primary-gradient: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+    --accent-color: #fb7185;
+    --success-color: #34d399;
+    --warning-color: #fbbf24;
+    --sidebar-bg: #030712;
+    --sidebar-text: #6b7280;
+    --sidebar-active-text: #ffffff;
+    --sidebar-active-bg: rgba(129, 140, 248, 0.15);
+    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    --glass-bg: rgba(21, 28, 44, 0.85);
+    --glass-border: rgba(31, 41, 55, 0.5);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.15s ease;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+/* Auth Layout styling */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 90.2%);
+    padding: 20px;
+}
+
+.auth-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: var(--card-shadow);
+    width: 100%;
+    max-width: 480px;
+    padding: 40px;
+}
+
+/* Master Layout Frame */
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* Responsive Custom Sidebar */
+#sidebar {
+    min-width: 260px;
+    max-width: 260px;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    min-height: 100vh;
+    z-index: 999;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.05);
+    position: fixed;
+    height: 100%;
+}
+
+#sidebar .sidebar-header {
+    padding: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+}
+
+#sidebar .logo-text {
+    font-size: 1.25rem;
+    font-weight: 800;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#sidebar ul.components {
+    padding: 24px 16px;
+}
+
+#sidebar ul li {
+    margin-bottom: 8px;
+    list-style: none;
+}
+
+#sidebar ul li a {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+#sidebar ul li a i {
+    font-size: 1.1rem;
+}
+
+#sidebar ul li a:hover {
+    color: var(--sidebar-active-text);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+#sidebar ul li.active > a {
+    color: var(--sidebar-active-text);
+    background: var(--sidebar-active-bg);
+    box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+/* Content Area layout */
+#content {
+    width: 100%;
+    padding: 40px;
+    min-height: 100vh;
+    margin-left: 260px;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: 24px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.gradient-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 30px;
+    border-radius: var(--card-radius);
+    margin-bottom: 24px;
+    box-shadow: var(--card-shadow);
+}
+
+/* Stat Cards */
+.stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.icon-income {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.icon-expense {
+    background-color: rgba(244, 63, 94, 0.1);
+    color: var(--accent-color);
+}
+
+.icon-savings {
+    background-color: rgba(99, 102, 241, 0.1);
+    color: var(--primary-color);
+}
+
+.icon-budget {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+/* Dashboard Insights Box */
+.insight-item {
+    border-left: 4px solid var(--border-color);
+    padding-left: 16px;
+    margin-bottom: 16px;
+}
+
+.insight-item.danger {
+    border-left-color: var(--accent-color);
+}
+
+.insight-item.warning {
+    border-left-color: var(--warning-color);
+}
+
+.insight-item.success {
+    border-left-color: var(--success-color);
+}
+
+/* Dark mode floating switch */
+.theme-switch {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--card-shadow);
+    color: var(--text-primary);
+}
+
+.theme-switch:hover {
+    color: var(--primary-color);
+}
+
+/* Tables style */
+.custom-table {
+    width: 100%;
+    margin-bottom: 0;
+    color: var(--text-primary);
+}
+
+.custom-table th {
+    background-color: transparent;
+    border-top: none;
+    border-bottom: 2px solid var(--border-color) !important;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    padding: 16px;
+}
+
+.custom-table td {
+    padding: 16px;
+    vertical-align: middle;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Badges styling */
+.badge-income {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: var(--success-color);
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.badge-expense {
+    background-color: rgba(244, 63, 94, 0.12);
+    color: var(--accent-color);
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.badge-debt {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: var(--warning-color);
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.badge-credit {
+    background-color: rgba(99, 102, 241, 0.12);
+    color: var(--primary-color);
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+/* Onboarding checklist tags styling */
+.category-checkbox-wrapper {
+    display: block;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    user-select: none;
+}
+
+.category-tile {
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.category-tile input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.category-tile:hover {
+    border-color: var(--primary-color);
+}
+
+.category-tile input:checked ~ .tile-content {
+    color: var(--primary-color);
+}
+
+.category-tile input:checked {
+    background-color: red;
+}
+
+.category-tile.active-selected {
+    border-color: var(--primary-color);
+    background-color: rgba(99, 102, 241, 0.05);
+}
+
+/* Modals */
+.modal-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-primary);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+}
+
+.form-control, .form-select {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--bg-primary);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+    color: var(--text-primary);
+}
+
+/* Buttons overrides */
+.btn-primary-gradient {
+    background: var(--primary-gradient);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary-gradient:hover {
+    opacity: 0.9;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+/* Budget Gauge card design */
+.progress {
+    height: 12px;
+    border-radius: 30px;
+    background-color: var(--border-color);
+}
+
+.progress-bar {
+    border-radius: 30px;
+}
+
+/* Loading animations */
+.micro-anim {
+    transition: transform 0.2s ease-in-out;
+}
+.micro-anim:hover {
+    transform: scale(1.02);
+}
+
+/* Responsiveness settings */
+@media(max-width: 991px) {
+    #sidebar {
+        margin-left: -260px;
+    }
+    #sidebar.active {
+        margin-left: 0;
+    }
+    #content {
+        margin-left: 0;
+        padding: 24px;
+    }
+    #sidebarCollapse span {
+        display: none;
+    }
+}

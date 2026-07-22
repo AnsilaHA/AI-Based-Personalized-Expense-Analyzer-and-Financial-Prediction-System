@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalize Categories - AI Personal Expense Analyzer</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="glass-card shadow border-0 p-5">
+                    <div class="text-center mb-5">
+                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3 fw-bold"><i class="bi bi-gear-wide-connected me-1"></i> Personalized AI Setup</span>
+                        <h2 class="fw-bold">Configure Your Analyzer</h2>
+                        <p class="text-muted">Based on your persona as a <strong class="text-primary">{{ user.persona }}</strong>, we have preloaded custom category suggestions. Choose the ones that fit your daily workflow to set up your dashboard.</p>
+                    </div>
+
+                    <form action="/onboarding" method="POST" id="onboardingForm">
+                        
+                        <!-- 1. Income categories section -->
+                        <h5 class="fw-bold mb-3 border-bottom pb-2 text-success"><i class="bi bi-plus-circle-fill me-2"></i>Income Sources to Track</h5>
+                        <div class="row row-cols-2 row-cols-md-4 g-3 mb-5">
+                            {% for cat in income_cats %}
+                            <div class="col">
+                                <label class="category-tile w-100 h-100 {% if cat.name in recommended %}active-selected{% endif %}" id="tile_{{ cat.id }}">
+                                    <input type="checkbox" name="selected_categories" value="{{ cat.id }}" 
+                                           class="category-check" data-id="{{ cat.id }}"
+                                           {% if cat.name in recommended %}checked{% endif %}>
+                                    <div class="tile-content text-center py-2">
+                                        <i class="bi bi-cash-stack fs-3 d-block mb-2"></i>
+                                        <span class="small fw-semibold">{{ cat.name }}</span>
+                                    </div>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- 2. Expense categories section -->
+                        <h5 class="fw-bold mb-3 border-bottom pb-2 text-danger"><i class="bi bi-dash-circle-fill me-2"></i>Expense Categories to Track</h5>
+                        <div class="row row-cols-2 row-cols-md-4 g-3 mb-5">
+                            {% for cat in expense_cats %}
+                            <div class="col">
+                                <label class="category-tile w-100 h-100 {% if cat.name in recommended %}active-selected{% endif %}" id="tile_{{ cat.id }}">
+                                    <input type="checkbox" name="selected_categories" value="{{ cat.id }}" 
+                                           class="category-check" data-id="{{ cat.id }}"
+                                           {% if cat.name in recommended %}checked{% endif %}>
+                                    <div class="tile-content text-center py-2">
+                                        {% if 'Groceries' in cat.name %}<i class="bi bi-cart4 fs-3 d-block mb-2"></i>
+                                        {% elif 'Food' in cat.name %}<i class="bi bi-cup-hot fs-3 d-block mb-2"></i>
+                                        {% elif 'Travel' in cat.name %}<i class="bi bi-airplane fs-3 d-block mb-2"></i>
+                                        {% elif 'Shopping' in cat.name %}<i class="bi bi-bag-heart fs-3 d-block mb-2"></i>
+                                        {% elif 'Medical' in cat.name or 'Hospital' in cat.name %}<i class="bi bi-heart-pulse fs-3 d-block mb-2"></i>
+                                        {% elif 'Education' in cat.name %}<i class="bi bi-book fs-3 d-block mb-2"></i>
+                                        {% elif 'Bills' in cat.name %}<i class="bi bi-receipt-cutoff fs-3 d-block mb-2"></i>
+                                        {% elif 'EMI' in cat.name or 'Loan' in cat.name %}<i class="bi bi-credit-card-2-front fs-3 d-block mb-2"></i>
+                                        {% elif 'Insurance' in cat.name or 'LIC' in cat.name %}<i class="bi bi-shield-check fs-3 d-block mb-2"></i>
+                                        {% elif 'Investments' in cat.name %}<i class="bi bi-graph-up-arrow fs-3 d-block mb-2"></i>
+                                        {% else %}<i class="bi bi-tags fs-3 d-block mb-2"></i>{% endif %}
+                                        <span class="small fw-semibold">{{ cat.name }}</span>
+                                    </div>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary-gradient px-5 py-3 fs-5 rounded-4"><i class="bi bi-lightning-charge me-2"></i>Generate My Analyzer Dashboard</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Checkbox tile style activation toggles
+        document.querySelectorAll('.category-check').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const tileId = 'tile_' + this.getAttribute('data-id');
+                const tile = document.getElementById(tileId);
+                if (tile) {
+                    if (this.checked) {
+                        tile.classList.add('active-selected');
+                    } else {
+                        tile.classList.remove('active-selected');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - AI Personal Expense Analyzer{% endblock %}
+{% block page_title %}Profile & Configurations{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <div class="row g-4">
+        <!-- Left Side Options: Budget and Custom Category creation -->
+        <div class="col-lg-4">
+            <div class="d-flex flex-column gap-4">
+                
+                <!-- 1. Monthly budget target limits form -->
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-speedometer2 me-2"></i>Monthly Budget Target</h5>
+                    <p class="text-muted small">Specify a monthly expenditure limit. The dashboard will warn you if your overall spending approaches or exceeds this target.</p>
+                    <hr class="text-muted opacity-10 my-2">
+                    
+                    <form action="/settings/budget" method="POST">
+                        <div class="mb-3">
+                            <label for="budget" class="form-label small fw-semibold text-muted">Budget Limit Target (₹)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-currency-rupee text-muted"></i></span>
+                                <input type="number" step="1" min="0" class="form-control border-start-0" id="budget" name="budget" value="{{ user.monthly_budget }}" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary-gradient w-100 py-2 rounded-3"><i class="bi bi-save me-1"></i>Save Budget Limit</button>
+                    </form>
+                </div>
+
+                <!-- 2. Custom Category Creator -->
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-tags-fill me-2"></i>Add Custom Category</h5>
+                    <p class="text-muted small">Can't find a category in our master list? Create a custom category to track specific expenses or income sources.</p>
+                    <hr class="text-muted opacity-10 my-2">
+                    
+                    <form action="/settings/custom_category" method="POST">
+                        <div class="mb-3">
+                            <label for="cat_name" class="form-label small fw-semibold text-muted">Category Label</label>
+                            <input type="text" class="form-control" id="cat_name" name="name" placeholder="e.g. Pet Food or Streaming Services" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="cat_type" class="form-label small fw-semibold text-muted">Category Type</label>
+                            <select class="form-select" id="cat_type" name="type" required>
+                                <option value="expense">Expense (Outflow)</option>
+                                <option value="income">Income (Inflow)</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-outline-primary w-100 py-2 rounded-3"><i class="bi bi-plus-circle me-1"></i>Create Category</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right Side Option: Customize Active Dashboard Categories -->
+        <div class="col-lg-8">
+            <div class="glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-sliders me-2"></i>Personalize Dashboard Categories</h5>
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1.5 rounded-pill small">Active list</span>
+                </div>
+                <p class="text-muted small">Select the categories you want visible in form inputs, summaries, and charts. De-selecting a category will hide it but will not delete your historical data.</p>
+                <hr class="text-muted opacity-10 my-3">
+
+                <form action="/settings/categories/save" method="POST">
+                    
+                    <!-- Income category checklist -->
+                    <h6 class="fw-bold text-success mb-3"><i class="bi bi-plus-circle me-1"></i>Income Categories</h6>
+                    <div class="row row-cols-2 row-cols-md-3 g-2 mb-4">
+                        {% for cat in income_cats %}
+                        <div class="col">
+                            <label class="category-tile w-100 h-100 {% if cat.id in selected_ids %}active-selected{% endif %}" id="tile_{{ cat.id }}">
+                                <input type="checkbox" name="selected_categories" value="{{ cat.id }}" 
+                                       class="category-check" data-id="{{ cat.id }}"
+                                       {% if cat.id in selected_ids %}checked{% endif %}>
+                                <div class="tile-content text-center py-2.5">
+                                    <span class="small fw-semibold">{{ cat.name }}</span>
+                                </div>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Expense category checklist -->
+                    <h6 class="fw-bold text-danger mb-3"><i class="bi bi-dash-circle me-1"></i>Expense Categories</h6>
+                    <div class="row row-cols-2 row-cols-md-3 g-2 mb-4">
+                        {% for cat in expense_cats %}
+                        <div class="col">
+                            <label class="category-tile w-100 h-100 {% if cat.id in selected_ids %}active-selected{% endif %}" id="tile_{{ cat.id }}">
+                                <input type="checkbox" name="selected_categories" value="{{ cat.id }}" 
+                                       class="category-check" data-id="{{ cat.id }}"
+                                       {% if cat.id in selected_ids %}checked{% endif %}>
+                                <div class="tile-content text-center py-2.5">
+                                    <span class="small fw-semibold">{{ cat.name }}</span>
+                                </div>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Custom Categories list -->
+                    {% if custom_cats %}
+                    <h6 class="fw-bold text-purple mb-3"><i class="bi bi-tags me-1"></i>Your Custom Added Categories</h6>
+                    <div class="row row-cols-2 row-cols-md-3 g-2 mb-4">
+                        {% for cat in custom_cats %}
+                        <div class="col">
+                            <label class="category-tile w-100 h-100 active-selected" id="tile_{{ cat.id }}">
+                                <input type="checkbox" name="selected_categories" value="{{ cat.id }}" 
+                                       class="category-check" data-id="{{ cat.id }}" checked>
+                                <div class="tile-content text-center py-2.5 text-purple">
+                                    <span class="small fw-semibold">{{ cat.name }}</span>
+                                    <small class="d-block text-muted" style="font-size: 0.65rem;">({{ cat.type.upper() }})</small>
+                                </div>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary-gradient px-4 py-2.5 rounded-3"><i class="bi bi-check-lg me-1"></i>Apply Active Selections</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Checkbox tile style activation toggles
+    document.querySelectorAll('.category-check').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const tileId = 'tile_' + this.getAttribute('data-id');
+            const tile = document.getElementById(tileId);
+            if (tile) {
+                if (this.checked) {
+                    tile.classList.add('active-selected');
+                } else {
+                    tile.classList.remove('active-selected');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - AI Personal Expense Analyzer{% endblock %}
+{% block page_title %}Transaction Ledger{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- 1. Header Filters & Action Buttons -->
+    <div class="glass-card mb-4">
+        <form action="/transactions" method="GET" class="row g-3 align-items-end">
+            <!-- Filter Type -->
+            <div class="col-md-3">
+                <label for="type_filter" class="form-label small fw-semibold text-muted">Filter by Ledger Type</label>
+                <select class="form-select" id="type_filter" name="type_filter">
+                    <option value="">All Transactions</option>
+                    <option value="income" {% if type_filter == 'income' %}selected{% endif %}>Incomes only</option>
+                    <option value="expense" {% if type_filter == 'expense' %}selected{% endif %}>Expenses only</option>
+                    <option value="debt" {% if type_filter == 'debt' %}selected{% endif %}>Debts (Money you owe)</option>
+                    <option value="credit" {% if type_filter == 'credit' %}selected{% endif %}>Credits (Money owed to you)</option>
+                </select>
+            </div>
+            
+            <!-- Filter Category -->
+            <div class="col-md-4">
+                <label for="category_filter" class="form-label small fw-semibold text-muted">Filter by Category</label>
+                <select class="form-select" id="category_filter" name="category_filter">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if category_filter == cat.id %}selected{% endif %}>
+                        [{{ cat.type.upper() }}] {{ cat.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="col-md-5 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-secondary w-50 py-2.5 rounded-3"><i class="bi bi-filter me-1"></i>Apply Filters</button>
+                <button type="button" class="btn btn-primary-gradient w-50 py-2.5 rounded-3" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+                    <i class="bi bi-plus-circle-fill me-2"></i>Add Record
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 2. Transaction Ledger List -->
+    <div class="glass-card mb-0">
+        <div class="table-responsive">
+            <table class="table custom-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Interval</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td>{{ tx.date }}</td>
+                        <td>
+                            <span class="badge {% if tx.type == 'income' %}badge-income{% elif tx.type == 'expense' %}badge-expense{% elif tx.type == 'debt' %}badge-debt{% else %}badge-credit{% endif %}">
+                                {{ tx.type.capitalize() }}
+                            </span>
+                        </td>
+                        <td>{{ tx.category_name }}</td>
+                        <td class="fw-bold {% if tx.type == 'income' or tx.type == 'credit' %}text-success{% else %}text-danger{% endif %}">
+                            ₹{{ "{:,.2f}".format(tx.amount) }}
+                        </td>
+                        <td><span class="text-truncate d-inline-block text-muted" style="max-width: 260px;" title="{{ tx.description }}">{{ tx.description or '-' }}</span></td>
+                        <td>
+                            <span class="text-muted small">
+                                {% if tx.is_recurring %}
+                                <i class="bi bi-repeat text-primary me-1" title="Recurring Payment"></i>{{ tx.frequency.capitalize() }}
+                                {% else %}
+                                One-time
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-2">
+                                <!-- Trigger Edit Modal with Pre-filled JS variables -->
+                                <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-pill px-2.5" 
+                                        data-bs-toggle="modal" data-bs-target="#editTransactionModal"
+                                        onclick="prepareEditModal('{{ tx.id }}', '{{ tx.type }}', '{{ tx.category_id }}', '{{ tx.amount }}', '{{ tx.date }}', '{{ tx.description | replace('\'', '\\\'') }}', '{{ tx.frequency }}', '{{ tx.is_recurring }}')">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                
+                                <!-- Delete Action -->
+                                <form action="/transactions/delete/{{ tx.id }}" method="POST" onsubmit="return confirm('Delete this record permanently?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-pill px-2.5">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-wallet2 fs-2 d-block mb-2"></i>
+                            <span>No ledger transactions found matching filters. Click "Add Record" to start logging.</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- ==========================================
+      MODAL: ADD TRANSACTION
+========================================== -->
+<div class="modal fade" id="addTransactionModal" tabindex="-1" aria-labelledby="addTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold" id="addTransactionModalLabel"><i class="bi bi-plus-circle text-primary me-2"></i>Add New Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#addTransactionModal" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form action="/transactions/add" method="POST">
+                <div class="modal-body py-4">
+                    
+                    <!-- Type Selection -->
+                    <div class="mb-3">
+                        <label for="add_type" class="form-label small fw-semibold text-muted">Transaction Type</label>
+                        <select class="form-select" id="add_type" name="type" onchange="filterCategories(this.value)" required>
+                            <option value="expense">Expense (Outflow)</option>
+                            <option value="income">Income (Inflow)</option>
+                            <option value="debt">Debt (Money you owe)</option>
+                            <option value="credit">Credit (Money owed to you)</option>
+                        </select>
+                    </div>
+
+                    <!-- Category dropdown (filtered based on type choice) -->
+                    <div class="mb-3">
+                        <label for="add_category_id" class="form-label small fw-semibold text-muted">Category Category</label>
+                        <select class="form-select" id="add_category_id" name="category_id" required>
+                            <!-- List income categories -->
+                            {% for cat in income_cats %}
+                            <option value="{{ cat.id }}" data-type="{{ cat.type }}" style="display:none;">{{ cat.name }}</option>
+                            {% endfor %}
+                            
+                            <!-- List expense categories -->
+                            {% for cat in expense_cats %}
+                            <option value="{{ cat.id }}" data-type="{{ cat.type }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <!-- Amount input -->
+                        <div class="col-md-6 mb-3">
+                            <label for="add_amount" class="form-label small fw-semibold text-muted">Amount (₹)</label>
+                            <input type="number" step="0.01" min="0.01" class="form-control" id="add_amount" name="amount" placeholder="0.00" required>
+                        </div>
+                        
+                        <!-- Date picker -->
+                        <div class="col-md-6 mb-3">
+                            <label for="add_date" class="form-label small fw-semibold text-muted">Date</label>
+                            <input type="date" class="form-control" id="add_date" name="date" required>
+                        </div>
+                    </div>
+
+                    <!-- Description input -->
+                    <div class="mb-3">
+                        <label for="add_description" class="form-label small fw-semibold text-muted">Description / Notes</label>
+                        <input type="text" class="form-control" id="add_description" name="description" placeholder="e.g. Weekly super market groceries">
+                    </div>
+
+                    <div class="row">
+                        <!-- Recurring checkbox -->
+                        <div class="col-md-6 mb-3">
+                            <label for="add_is_recurring" class="form-label small fw-semibold text-muted">Is Recurring?</label>
+                            <select class="form-select" id="add_is_recurring" name="is_recurring" onchange="document.getElementById('add_freq_div').style.display = (this.value == '1' ? 'block' : 'none')">
+                                <option value="0">No (One-time)</option>
+                                <option value="1">Yes (Recurring)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Frequency selector -->
+                        <div class="col-md-6 mb-3" id="add_freq_div" style="display: none;">
+                            <label for="add_frequency" class="form-label small fw-semibold text-muted">Repetition Interval</label>
+                            <select class="form-select" id="add_frequency" name="frequency">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="bi-weekly">Bi-weekly</option>
+                                <option value="monthly" selected>Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="half-yearly">Half-yearly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer border-top bg-light bg-opacity-50">
+                    <button type="button" class="btn btn-secondary border-0 px-4 rounded-3" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary-gradient px-4 rounded-3">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+      MODAL: EDIT TRANSACTION
+========================================== -->
+<div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold" id="editTransactionModalLabel"><i class="bi bi-pencil-square text-primary me-2"></i>Edit Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form action="" method="POST" id="editTransactionForm">
+                <div class="modal-body py-4">
+                    
+                    <!-- Type Selection -->
+                    <div class="mb-3">
+                        <label for="edit_type" class="form-label small fw-semibold text-muted">Transaction Type</label>
+                        <select class="form-select" id="edit_type" name="type" onchange="filterEditCategories(this.value)" required>
+                            <option value="expense">Expense (Outflow)</option>
+                            <option value="income">Income (Inflow)</option>
+                            <option value="debt">Debt (Money you owe)</option>
+                            <option value="credit">Credit (Money owed to you)</option>
+                        </select>
+                    </div>
+
+                    <!-- Category dropdown (filtered based on type choice) -->
+                    <div class="mb-3">
+                        <label for="edit_category_id" class="form-label small fw-semibold text-muted">Category Category</label>
+                        <select class="form-select" id="edit_category_id" name="category_id" required>
+                            <!-- List income categories -->
+                            {% for cat in income_cats %}
+                            <option value="{{ cat.id }}" data-type="{{ cat.type }}">{{ cat.name }}</option>
+                            {% endfor %}
+                            
+                            <!-- List expense categories -->
+                            {% for cat in expense_cats %}
+                            <option value="{{ cat.id }}" data-type="{{ cat.type }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <!-- Amount input -->
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_amount" class="form-label small fw-semibold text-muted">Amount (₹)</label>
+                            <input type="number" step="0.01" min="0.01" class="form-control" id="edit_amount" name="amount" required>
+                        </div>
+                        
+                        <!-- Date picker -->
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_date" class="form-label small fw-semibold text-muted">Date</label>
+                            <input type="date" class="form-control" id="edit_date" name="date" required>
+                        </div>
+                    </div>
+
+                    <!-- Description input -->
+                    <div class="mb-3">
+                        <label for="edit_description" class="form-label small fw-semibold text-muted">Description / Notes</label>
+                        <input type="text" class="form-control" id="edit_description" name="description">
+                    </div>
+
+                    <div class="row">
+                        <!-- Recurring checkbox -->
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_is_recurring" class="form-label small fw-semibold text-muted">Is Recurring?</label>
+                            <select class="form-select" id="edit_is_recurring" name="is_recurring" onchange="document.getElementById('edit_freq_div').style.display = (this.value == '1' ? 'block' : 'none')">
+                                <option value="0">No (One-time)</option>
+                                <option value="1">Yes (Recurring)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Frequency selector -->
+                        <div class="col-md-6 mb-3" id="edit_freq_div" style="display: none;">
+                            <label for="edit_frequency" class="form-label small fw-semibold text-muted">Repetition Interval</label>
+                            <select class="form-select" id="edit_frequency" name="frequency">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="bi-weekly">Bi-weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="half-yearly">Half-yearly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer border-top bg-light bg-opacity-50">
+                    <button type="button" class="btn btn-secondary border-0 px-4 rounded-3" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary-gradient px-4 rounded-3">Update Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set default add date to today
+    document.getElementById("add_date").value = new Date().toISOString().substring(0, 10);
+    
+    // Automatically trigger initial category filtering on load
+    filterCategories(document.getElementById("add_type").value);
+</script>
+{% endblock %}

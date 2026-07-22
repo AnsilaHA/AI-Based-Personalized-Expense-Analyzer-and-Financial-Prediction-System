@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Personal Expense Analyzer{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar">
+            <div class="sidebar-header d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="logo-text"><i class="bi bi-cpu-fill me-2"></i>AI Expense Pro</span>
+                </div>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="{% if request.url.path == '/dashboard' %}active{% endif %}">
+                    <a href="/dashboard"><i class="bi bi-grid-1x2-fill"></i> <span>Dashboard</span></a>
+                </li>
+                <li class="{% if request.url.path == '/transactions' %}active{% endif %}">
+                    <a href="/transactions"><i class="bi bi-wallet2"></i> <span>Transactions</span></a>
+                </li>
+                <li class="{% if request.url.path == '/reports' %}active{% endif %}">
+                    <a href="/reports"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports</span></a>
+                </li>
+                <li class="{% if request.url.path == '/settings' %}active{% endif %}">
+                    <a href="/settings"><i class="bi bi-sliders"></i> <span>Settings</span></a>
+                </li>
+                <li class="mt-5">
+                    <a href="/logout" class="text-danger"><i class="bi bi-box-arrow-right text-danger"></i> <span>Logout</span></a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Body Wrapper -->
+        <div id="content">
+            <!-- Top Navbar header -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-transparent p-0 mb-4">
+                <div class="container-fluid p-0">
+                    <button type="button" id="sidebarCollapse" class="btn btn-outline-secondary border-0 me-3">
+                        <i class="bi bi-justify fs-4"></i>
+                    </button>
+                    
+                    <h4 class="mb-0 fw-bold">{% block page_title %}Dashboard Overview{% endblock %}</h4>
+                    
+                    <div class="ms-auto d-flex align-items-center gap-3">
+                        <!-- Dark Mode Toggle -->
+                        <button class="theme-switch border-0" id="themeToggle" title="Toggle Theme">
+                            <i class="bi bi-moon-fill"></i>
+                        </button>
+                        
+                        <!-- User Account Profile Badge -->
+                        <div class="d-none d-md-flex flex-column align-items-end text-end">
+                            <span class="fw-semibold text-primary" style="font-size: 0.95rem;">{{ request.session.get('username') }}</span>
+                            <span class="text-muted" style="font-size: 0.75rem;">{{ user.persona if user else 'General User' }} Profile</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Notification Alerts for Operations -->
+            {% if request.query_params.get('msg') %}
+            <div class="alert alert-success alert-dismissible fade show border-0 rounded-4 shadow-sm mb-4" role="alert" style="background-color: rgba(16, 185, 129, 0.12); color: var(--success-color);">
+                <i class="bi bi-check-circle-fill me-2"></i> {{ request.query_params.get('msg') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+            
+            {% if request.query_params.get('error') %}
+            <div class="alert alert-danger alert-dismissible fade show border-0 rounded-4 shadow-sm mb-4" role="alert" style="background-color: rgba(244, 63, 94, 0.12); color: var(--accent-color);">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ request.query_params.get('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            <!-- Dynamic Body Content -->
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ChartJS library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Global Main JS helper -->
+    <script src="/static/js/main.js"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Personal Expense Analyzer{% endblock %}
+{% block page_title %}{{ request.session.get('username') }}'s Personal Expense Analyzer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- 1. Top Stat Metrics Row -->
+    <div class="row g-4 mb-4">
+        <!-- Total Income Widget -->
+        <div class="col-md-3">
+            <div class="glass-card stat-card micro-anim h-100">
+                <div>
+                    <span class="text-muted small fw-semibold">Total Income logged</span>
+                    <h3 class="fw-bold mt-1 text-success">₹{{ "{:,.2f}".format(summary.total_income) }}</h3>
+                </div>
+                <div class="stat-icon icon-income">
+                    <i class="bi bi-wallet-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Expenses Widget -->
+        <div class="col-md-3">
+            <div class="glass-card stat-card micro-anim h-100">
+                <div>
+                    <span class="text-muted small fw-semibold">Total Expenses logged</span>
+                    <h3 class="fw-bold mt-1 text-danger">₹{{ "{:,.2f}".format(summary.total_expense) }}</h3>
+                </div>
+                <div class="stat-icon icon-expense">
+                    <i class="bi bi-cart-dash-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Net Savings Widget -->
+        <div class="col-md-3">
+            <div class="glass-card stat-card micro-anim h-100">
+                <div>
+                    <span class="text-muted small fw-semibold">Net Savings Rate</span>
+                    <h3 class="fw-bold mt-1 text-primary">₹{{ "{:,.2f}".format(summary.savings) }}</h3>
+                    <span
+                        class="small fw-semibold {% if summary.savings_rate >= 20 %}text-success{% elif summary.savings_rate > 0 %}text-warning{% else %}text-danger{% endif %}">
+                        <i
+                            class="bi {% if summary.savings_rate >= 20 %}bi-arrow-up-circle-fill{% else %}bi-arrow-down-circle-fill{% endif %}"></i>
+                        {{ "{:.1f}%".format(summary.savings_rate) }} saved
+                    </span>
+                </div>
+                <div class="stat-icon icon-savings">
+                    <i class="bi bi-piggy-bank-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cash Flow Balance Widget -->
+        <div class="col-md-3">
+            <div class="glass-card stat-card micro-anim h-100">
+                <div>
+                    <span class="text-muted small fw-semibold">Remaining Cash Flow</span>
+                    <h3
+                        class="fw-bold mt-1 {% if summary.remaining_balance >= 0 %}text-primary{% else %}text-danger{% endif %}">
+                        ₹{{ "{:,.2f}".format(summary.remaining_balance) }}
+                    </h3>
+                    <span class="text-muted small" style="font-size: 0.7rem;">Adjusted for Active Debts</span>
+                </div>
+                <div class="stat-icon icon-budget">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Budget limit Gauge (Displays only if user has a budget > 0) -->
+    <div class="glass-card mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h6 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Monthly Budget Target
+                Utilization</h6>
+            <span class="small text-muted">
+                {% if user.monthly_budget > 0 %}
+                Limit: <strong>₹{{ "{:,.2f}".format(user.monthly_budget) }}</strong> (Utilized: <strong>{{
+                    "{:.1f}%".format(summary.budget_utilization) }}</strong>)
+                {% else %}
+                <a href="/settings" class="text-decoration-none"><i class="bi bi-plus-circle me-1"></i>Set a monthly
+                    spending limit in Settings</a>
+                {% endif %}
+            </span>
+        </div>
+        {% if user.monthly_budget > 0 %}
+        <div class="progress">
+            <div class="progress-bar {% if summary.budget_utilization > 100 %}bg-danger{% elif summary.budget_utilization > 80 %}bg-warning{% else %}bg-success{% endif %}"
+                role="progressbar" style="width: {{ min(summary.budget_utilization, 100) }}%"
+                aria-valuenow="{{ summary.budget_utilization }}" aria-valuemin="0" aria-valuemax="100">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 3. AI Insights and Charts Section -->
+    <div class="row g-4 mb-4">
+        <!-- Visual Charts Panel -->
+        <div class="col-lg-8">
+            <div class="row g-4 h-100">
+                <!-- Grouped Monthly Bar Chart -->
+                <div class="col-md-12">
+                    <div class="glass-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-steps me-2 text-indigo"></i>Monthly
+                                Inflows vs Outflows</h6>
+                            <small class="text-muted">Chronological cash flows</small>
+                        </div>
+                        <div class="chart-container" style="position: relative; height: 320px;">
+                            {% if summary.has_data %}
+                            <canvas id="timelineChart"></canvas>
+                            {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <span class="text-muted small">No transactions logged to plot history.</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expense Distribution Pie Chart & Line Trend Chart -->
+                <div class="col-md-6">
+                    <div class="glass-card h-100">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill me-2 text-purple"></i>Expenditure
+                            Category Breakdown</h6>
+                        <div class="chart-container" style="position: relative; height: 220px;">
+                            {% if summary.has_data and summary.category_totals %}
+                            <canvas id="expenseChart"></canvas>
+                            {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <span class="text-muted small">Log expense transactions to show allocation.</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="glass-card h-100">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2 text-success"></i>Monthly Expense Growth
+                            Trend</h6>
+                        <div class="chart-container" style="position: relative; height: 220px;">
+                            {% if summary.has_data %}
+                            <canvas id="trendsChart"></canvas>
+                            {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <span class="text-muted small">Timeline requires transactional history.</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Real-Time Insights Alert Box -->
+        <div class="col-lg-4">
+            <div class="glass-card h-100">
+                <h5 class="fw-bold mb-3 text-primary d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-cpu-fill me-2 text-indigo"></i>AI Wealth Insights</span>
+                    <span
+                        class="badge bg-indigo bg-opacity-10 text-indigo rounded-pill fs-7 py-1 px-2.5">Real-time</span>
+                </h5>
+                <hr class="my-2 text-muted opacity-10">
+
+                <div class="insights-scroll pe-1" style="max-height: 520px; overflow-y: auto;">
+                    {% if summary.suggestions or ai_insights %}
+                    <!-- Render Analyzer alerts (Pandas) -->
+                    {% for sug in summary.suggestions %}
+                    <div class="insight-item {{ sug.type }} p-3 mb-3 bg-light bg-opacity-40 rounded-4">
+                        <h6 class="fw-bold mb-1 d-flex align-items-center">
+                            {% if sug.type == 'danger' %}<i class="bi bi-exclamation-octagon-fill text-danger me-2"></i>
+                            {% elif sug.type == 'warning' %}<i
+                                class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                            {% else %}<i class="bi bi-patch-check-fill text-success me-2"></i>{% endif %}
+                            {{ sug.title }}
+                        </h6>
+                        <p class="text-muted mb-0 small">{{ sug.text }}</p>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Render Predictor Slope alerts (Scikit-learn) -->
+                    {% for ins in ai_insights %}
+                    <div
+                        class="insight-item p-3 mb-3 bg-light bg-opacity-30 rounded-4 border-start border-primary border-4">
+                        <h6 class="fw-bold mb-1"><i class="bi bi-arrow-right-circle-fill text-primary me-2"></i>Machine
+                            Learning Trend</h6>
+                        <p class="text-muted mb-0 small">{{ ins }}</p>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-journal-check fs-2 d-block mb-2"></i>
+                        <span class="small">Our AI core is analyzing your budget. Start entering incomes &
+                            expenses.</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Scikit-Learn Financial Predictions Panel -->
+    <div class="glass-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0 text-purple"><i class="bi bi-lightning-charge-fill me-2 text-purple"></i>Predictive
+                Expenditure Projections (Scikit-Learn Regression)</h5>
+            <span class="badge bg-purple bg-opacity-10 text-purple px-3 py-1.5 rounded-pill small fw-semibold"><i
+                    class="bi bi-info-circle me-1"></i>{{ predictions.model_status }}</span>
+        </div>
+        <hr class="mb-4 text-muted opacity-10">
+
+        <div class="row g-4">
+            <div class="col-md-5">
+                <div class="row g-3 h-100">
+                    <!-- Month Predict -->
+                    <div class="col-6">
+                        <div
+                            class="p-3 bg-light bg-opacity-40 rounded-4 border border-light text-center h-100 d-flex flex-column justify-content-center">
+                            <span class="text-muted small">Next Month Projected Expense</span>
+                            <h4 class="fw-extrabold mt-2 text-purple mb-0">₹{{
+                                "{:,.2f}".format(predictions.next_month_expense) }}</h4>
+                        </div>
+                    </div>
+                    <!-- Quarter Predict -->
+                    <div class="col-6">
+                        <div
+                            class="p-3 bg-light bg-opacity-40 rounded-4 border border-light text-center h-100 d-flex flex-column justify-content-center">
+                            <span class="text-muted small">Next Quarter Projected Expense</span>
+                            <h4 class="fw-extrabold mt-2 text-purple mb-0">₹{{
+                                "{:,.2f}".format(predictions.next_quarter_expense) }}</h4>
+                        </div>
+                    </div>
+                    <!-- Year Predict -->
+                    <div class="col-6">
+                        <div
+                            class="p-3 bg-light bg-opacity-40 rounded-4 border border-light text-center h-100 d-flex flex-column justify-content-center">
+                            <span class="text-muted small">Next Year Projected Expense</span>
+                            <h4 class="fw-extrabold mt-2 text-purple mb-0">₹{{
+                                "{:,.2f}".format(predictions.next_year_expense) }}</h4>
+                        </div>
+                    </div>
+                    <!-- Savings Predict -->
+                    <div class="col-6">
+                        <div
+                            class="p-3 bg-light bg-opacity-40 rounded-4 border border-light text-center h-100 d-flex flex-column justify-content-center">
+                            <span class="text-muted small">Projected Monthly Savings</span>
+                            <h4
+                                class="fw-extrabold mt-2 {% if predictions.next_month_savings >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                                ₹{{ "{:,.2f}".format(predictions.next_month_savings) }}
+                            </h4>
+                            <span class="small text-muted mt-1 d-block" style="font-size: 0.7rem;">Rate: {{
+                                "{:.1f}%".format(predictions.predicted_savings_rate) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Prediction Bar Chart -->
+            <div class="col-md-7">
+                <div class="p-3 bg-light bg-opacity-35 rounded-4 h-100 border border-light">
+                    <h6 class="fw-bold mb-2 small text-muted"><i class="bi bi-diagram-3 me-2 text-purple"></i>Predictive
+                        Next-Month Category Allocation</h6>
+                    <div class="chart-container" style="position: relative; height: 180px;">
+                        {% if summary.has_data and predictions.category_predictions %}
+                        <canvas id="predictionChart"></canvas>
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <span class="text-muted small">Train predictions by logging category expense records.</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Recent Activity Ledger Row -->
+    <div class="glass-card mb-0">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Financial Activity</h6>
+            <a href="/transactions" class="btn btn-sm btn-outline-primary border-0 rounded-pill"><i
+                    class="bi bi-arrow-right-circle me-1"></i>View All Ledger</a>
+        </div>
+        <hr class="text-muted opacity-10 my-2">
+
+        <div class="table-responsive">
+            <table class="table custom-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in recent_transactions %}
+                    <tr>
+                        <td>{{ tx.date }}</td>
+                        <td>
+                            <span
+                                class="badge {% if tx.type == 'income' %}badge-income{% elif tx.type == 'expense' %}badge-expense{% elif tx.type == 'debt' %}badge-debt{% else %}badge-credit{% endif %}">
+                                {{ tx.type.capitalize() }}
+                            </span>
+                        </td>
+                        <td>{{ tx.category_name }}</td>
+                        <td class="fw-bold">₹{{ "{:,.2f}".format(tx.amount) }}</td>
+                        <td><span class="text-truncate d-inline-block text-muted" style="max-width: 200px;">{{
+                                tx.description or '-' }}</span></td>
+                        <td>
+                            <span class="text-muted small">
+                                {% if tx.is_recurring %}<i class="bi bi-repeat me-1 text-primary"></i>{{
+                                tx.frequency.capitalize() }}{% else %}One-time{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No transaction logs available. Click
+                            "Transactions" to add.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}

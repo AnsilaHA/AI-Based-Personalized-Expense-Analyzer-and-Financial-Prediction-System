@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - AI Personal Expense Analyzer{% endblock %}
+{% block page_title %}Financial Aggregates & Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- 1. Time Frame Static Aggregates (Monthly, Half-Yearly, Yearly) -->
+    <div class="row g-4 mb-4">
+        <!-- Monthly Aggregates Card -->
+        <div class="col-md-4">
+            <div class="glass-card h-100 border-top border-success border-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0 text-success"><i class="bi bi-calendar-event me-2"></i>Monthly Summary</h5>
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill small">Current Month</span>
+                </div>
+                <hr class="text-muted opacity-10 my-2">
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <div class="d-flex justify-content-between small"><span class="text-muted">Total Inflow:</span><strong class="text-success">₹{{ "{:,.2f}".format(time_reports.monthly.income) }}</strong></div>
+                    <div class="d-flex justify-content-between small"><span class="text-muted">Total Outflow:</span><strong class="text-danger">₹{{ "{:,.2f}".format(time_reports.monthly.expense) }}</strong></div>
+                    <div class="d-flex justify-content-between small"><span class="text-muted">Net Savings:</span><strong class="text-primary">₹{{ "{:,.2f}".format(time_reports.monthly.savings) }}</strong></div>
+                </div>
+                <h6 class="fw-bold mb-2 small text-muted">Category Outflow details:</h6>
+                <div class="categories-list" style="max-height: 140px; overflow-y: auto;">
+                    {% for name, val in time_reports.monthly.categories.items() %}
+                    <div class="d-flex justify-content-between small py-1 border-bottom border-light"><span class="text-muted">{{ name }}:</span><span class="fw-semibold">₹{{ "{:,.2f}".format(val) }}</span></div>
+                    {% else %}
+                    <span class="small text-muted d-block py-2">No expenditures recorded this month.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Half-Yearly Aggregates Card -->
+        <div class="col-md-4">
+            <div class="glass-card h-100 border-top border-primary border-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-calendar-range me-2"></i>Half-Yearly Summary</h5>
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill small">Past 6 Months</span>
+                </div>
+                <hr class="text-muted opacity-10 my-2">
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <div class="d-flex justify-content-between small"><span class="text-muted">Total Inflow:</span><strong class="text-success">₹{{ "{:,.2f}".format(time_reports.half_yearly.income) }}</strong></div>
+                    <div class="d-flex justify-content-between small"><span class="text-muted">Total Outflow:</span><strong class="text-danger">₹{{ "{:,.2f}".format(time_reports.half_yearly.expense) }}</strong></div>
+                    <div class="d-flex justify-content-between small"><span class="text-muted">Net Savings:</span><strong class="text-primary">₹{{ "{:,.2f}".format(time_reports.half_yearly.savings) }}</strong></div>
+                </div>
+                <h6 class="fw-bold mb-2 small text-muted">Category Outflow details:</h6>
+                <div class="categories-list" style="max-height: 140px; overflow-y: auto;">
+                    {% for name, val in time_reports.half_yearly.categories.items() %}
+                    <div class="d-flex justify-content-between small py-1 border-bottom border-light"><span class="text-muted">{{ name }}:</span><span class="fw-semibold">₹{{ "{:,.2f}".format(val) }}</span></div>
+                    {% else %}
+                    <span class="small text-muted d-block py-2">No historical expenditures recorded.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Yearly Aggregates Card -->
+        <div class="col-md-4">
+            <div class="glass-card h-100 border-top border-purple border-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0 text-purple"><i class="bi bi-calendar3 me-2"></i>Yearly Summary</h5>
+                    <span class="badge bg-purple bg-opacity-10 text-purple rounded-pill small">Past 12 Months</span>
+                </div>
+                <hr class="text-muted opacity-10 my-2">
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <div class="d-flex justify-content-between small"><span class="text-muted">Total Inflow:</span><strong class="text-success">₹{{ "{:,.2f}".format(time_reports.yearly.income) }}</strong></div>
+                    <div class="d-flex justify-content-between small"><span class="text-muted">Total Outflow:</span><strong class="text-danger">₹{{ "{:,.2f}".format(time_reports.yearly.expense) }}</strong></div>
+                    <div class="d-flex justify-content-between small"><span class="text-muted">Net Savings:</span><strong class="text-primary">₹{{ "{:,.2f}".format(time_reports.yearly.savings) }}</strong></div>
+                </div>
+                <h6 class="fw-bold mb-2 small text-muted">Category Outflow details:</h6>
+                <div class="categories-list" style="max-height: 140px; overflow-y: auto;">
+                    {% for name, val in time_reports.yearly.categories.items() %}
+                    <div class="d-flex justify-content-between small py-1 border-bottom border-light"><span class="text-muted">{{ name }}:</span><span class="fw-semibold">₹{{ "{:,.2f}".format(val) }}</span></div>
+                    {% else %}
+                    <span class="small text-muted d-block py-2">No yearly records logged yet.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Custom Date Range Audit Tool -->
+    <div class="glass-card mb-4">
+        <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-search me-2 text-indigo"></i>Custom Date Range Audit Ledger</h5>
+        <form action="/reports" method="GET" class="row g-3 align-items-end mb-4">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label small fw-semibold text-muted">Start Date</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date or '' }}" required>
+            </div>
+            
+            <div class="col-md-4">
+                <label for="end_date" class="form-label small fw-semibold text-muted">End Date</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date or '' }}" required>
+            </div>
+            
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary-gradient w-50 py-2.5 rounded-3"><i class="bi bi-search me-1"></i>Search Audit</button>
+                {% if start_date and end_date %}
+                <a href="/reports/export?start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-outline-success w-50 py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-1">
+                    <i class="bi bi-file-earmark-spreadsheet-fill"></i> Export CSV
+                </a>
+                {% else %}
+                <a href="/reports/export" class="btn btn-outline-success w-50 py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-1">
+                    <i class="bi bi-file-earmark-spreadsheet-fill"></i> Export All
+                </a>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- Custom query search results panel -->
+        {% if start_date and end_date %}
+        <hr class="text-muted opacity-10 mb-4">
+        
+        <!-- Results summary cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 text-center border-end">
+                <span class="text-muted small">Inflow total for range</span>
+                <h5 class="fw-bold mt-1 text-success">₹{{ "{:,.2f}".format(custom_totals.income) }}</h5>
+            </div>
+            <div class="col-md-4 text-center border-end">
+                <span class="text-muted small">Outflow total for range</span>
+                <h5 class="fw-bold mt-1 text-danger">₹{{ "{:,.2f}".format(custom_totals.expense) }}</h5>
+            </div>
+            <div class="col-md-4 text-center">
+                <span class="text-muted small">Net Savings for range</span>
+                <h5 class="fw-bold mt-1 text-primary">₹{{ "{:,.2f}".format(custom_totals.savings) }}</h5>
+            </div>
+        </div>
+
+        <!-- Resulting Transactions list -->
+        <div class="table-responsive">
+            <table class="table custom-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in custom_transactions %}
+                    <tr>
+                        <td>{{ tx.date }}</td>
+                        <td>
+                            <span class="badge {% if tx.type == 'income' %}badge-income{% elif tx.type == 'expense' %}badge-expense{% elif tx.type == 'debt' %}badge-debt{% else %}badge-credit{% endif %}">
+                                {{ tx.type.capitalize() }}
+                            </span>
+                        </td>
+                        <td>{{ tx.category_name }}</td>
+                        <td class="fw-bold {% if tx.type == 'income' or tx.type == 'credit' %}text-success{% else %}text-danger{% endif %}">
+                            ₹{{ "{:,.2f}".format(tx.amount) }}
+                        </td>
+                        <td><span class="text-muted small">{{ tx.description or '-' }}</span></td>
+                        <td>
+                            <span class="text-muted small">
+                                {% if tx.is_recurring %}<i class="bi bi-repeat text-primary me-1"></i>{{ tx.frequency.capitalize() }}{% else %}One-time{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No records found within this search timeframe.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
